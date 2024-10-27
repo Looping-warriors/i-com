@@ -31,8 +31,13 @@ const White_board_page = () => {
               <Logo />
             </WelcomeScreen.Center.Logo>
             <WelcomeScreen.Center.Heading>
-              Nothing's New WhiteBoard!
+             The WhiteBoard!
             </WelcomeScreen.Center.Heading>
+            <WelcomeScreen.Center.Heading>
+              Design Your Project
+            </WelcomeScreen.Center.Heading>
+            <WelcomeScreen.Center.MenuItemLoadScene/>
+              
           </WelcomeScreen.Center>
         </WelcomeScreen>
         <MainMenu>
@@ -51,6 +56,8 @@ export default White_board_page;
 const Container = styled.div`
   height: 100vh;
   .excalidraw {
-    --color-primary: red;
+    --color-primary: var(--primary_color);
+    --color-surface-primary-container: var(--secondary_color);
+    --color-on-primary-container:var(--primary_color)
   }
 `;

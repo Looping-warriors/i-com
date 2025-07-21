@@ -1,193 +1,200 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { styled } from "styled-components";
-import { useAuth } from "../../context/auth";
-import axios from "axios";
-import { notifications } from "@mantine/notifications";
-import { Box, Input, LoadingOverlay, MultiSelect } from "@mantine/core";
-import { AiFillExclamationCircle } from "react-icons/ai";
+import {
+  Avatar,
+  Button,
+  Input,
+  LoadingOverlay,
+  Modal,
+  MultiSelect,
+  Textarea,
+} from "@mantine/core";
+import React from "react";
+import { useDispatch, useSelector } from "react-redux";
+import Content from "./Content";
+import { setCreatePost } from "../../Redux/Slices/publicPostsSlice";
+import {
+  picUpdatingModal,
+  resetChangedPicUrl,
+} from "../../Redux/Slices/authSlice";
+import Change_pic from "../Profile/Change_pic";
 
-// export const Post_content=createContext();
+const Post_create_box = () => {
+  const { isCreatingPost, postModelType, createPost } = useSelector(
+    (state) => state.publicPosts
+  );
+  const { user, isChangingPicUrl, changedPicUrl } = useSelector(
+    (state) => state.auth
+  );
+  const dispatch = useDispatch();
 
-const Post_create_box = ({ close }) => {
-  const auth = useAuth();
-  const [visible, toggle ] = useState(false);
+  useEffect(() => {
+    dispatch(resetChangedPicUrl());
+  }, []);
 
-  const [postUpload, setPostUpload] = useState({
-    userName: auth.user.username,
-    title: "",
-    content: "",
-    tag: [],
-    bannerPic:"",
-    profilePicUrl: auth.user.profile,
-  });
-
-  const { tag, ...others } = postUpload;
-
-  // console.log(tag)
-  
-  const imagetobase64=(e)=>{
-    var reader=new FileReader();
-    reader.readAsDataURL(e.target.files[0]);
-    reader.onload=()=>{
-      setPostUpload({...postUpload,bannerPic:reader.result});
+  useEffect(() => {
+    if (changedPicUrl) {
+      dispatch(setCreatePost({ ...createPost, bannerPic: changedPicUrl }));
     }
-    reader.onerror=(err)=>{
-      console.log(err);
-    }
-  }
+  }, [changedPicUrl]);
+
+  const openUpdatingBannerPicModal = () => {
+    dispatch(picUpdatingModal(true));
+  };
+
+  const closeUpdatingBannerPicModal = () => {
+    dispatch(picUpdatingModal(false));
+  };
 
   const [data, setData] = useState([
-    { value: "react", label: "React" },
-    { value: "ng", label: "Angular" },
+    "React",
+    "Angular",
+    "Vue",
+    "Svelte",
+    ...createPost.tags,
   ]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setPostUpload({ ...postUpload, [name]: value });
+    dispatch(setCreatePost({ ...createPost, [name]: value }));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    toggle(true);
-    axios
-      .post("http://localhost:5010/post/", postUpload)
-      .then((res) => {
-        console.log(res);
-        close(false);
-        notifications.show({
-          title: "Posted Successfully",
-          message: "Hey there,User post is Uploaded",
-        });
-      })
-      .catch((err) => {
-        notifications.show({
-          title: "Post Not Uploaded",
-          message: "Some thing went Wrong",
-          color: "red",
-          icon: (
-            <AiFillExclamationCircle
-              color='white'
-              size='3rem'
-            />
-          ),
-        });
-        console.log(err);
-        toggle(false);
-      });
+    if (postModelType === "CREATE_POST")
+      dispatch({ type: "CREATE_POST", data: createPost });
+    else if (postModelType === "EDIT_POST")
+      dispatch({ type: "EDIT_POST", data: { _id: user._id, createPost } });
   };
 
   return (
-    <Box
-      pos='relative'
-    >
-      <LoadingOverlay
-        visible={visible}
-        overlayBlur={2}
-      />
-      <Container onSubmit={handleSubmit}>
-      <input
-            type='file'
-            id='images'
-            accept='image/*'
-            onChange={imagetobase64}
+    <Container>
+      <Modal
+        opened={isChangingPicUrl}
+        onClose={closeUpdatingBannerPicModal}
+        title='Change Banner Picture'
+      >
+        <Change_pic />
+      </Modal>
+      <Left>
+        <LoadingOverlay
+          visible={isCreatingPost}
+          overlayBlur={2}
+        />
+        <BOX onSubmit={handleSubmit}>
+          <label>Banner Picture</label>
+          <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
+            <Avatar
+              color='blue'
+              src={createPost.bannerPic}
+              size={80}
+            />
+            <Button onClick={openUpdatingBannerPicModal}>Upload Banner</Button>
+          </div>
+          <label>Title</label>
+          <Input
+            className='title'
+            placeholder='Title of the Your Post'
+            type='text'
+            value={createPost.title}
+            name='title'
+            onChange={handleChange}
+            required
           />
-        <label>Title</label>
-        <Input
-          className='title'
-          placeholder='Title of the Your Post'
-          type='text'
-          value={postUpload.title}
-          name='title'
-          onChange={handleChange}
-          required
-        />
-        <label>Tags</label>
-        <MultiSelect
-          data={data}
-          placeholder='Select Tags'
-          searchable
-          creatable
-          getCreateLabel={(query) => `+ Create ${query}`}
-          onCreate={(query) => {
-            const item = { value: query, label: query };
-            setData((current) => [...current, item]);
-            return item;
-          }}
-          size='md'
-          rightSectionWidth={1}
-          maxDropdownHeight={160}
-          onChange={(value) => {
-            setPostUpload({ ...postUpload, tag: value });
-          }}
-        />
-        <label>Description</label>
-        <textarea
-          className='post_context'
-          placeholder='Provide in markup language'
-          name='content'
-          onChange={handleChange}
-        ></textarea>
-        <input
-          className='submit'
-          type='submit'
-          value='Post'
-        />
-      </Container>
-    </Box>
+          <label>Tags</label>
+          <MultiSelect
+            data={data}
+            defaultValue={createPost.tags}
+            placeholder='Select Tags'
+            searchable
+            creatable
+            getCreateLabel={(query) => `+ Create ${query}`}
+            onCreate={(query) => {
+              const item = { value: query, label: query };
+              setData((current) => [...current, item]);
+              return item;
+            }}
+            size='md'
+            rightSectionWidth={1}
+            maxDropdownHeight={160}
+            onChange={(value) => {
+              dispatch(setCreatePost({ ...createPost, tags: value }));
+            }}
+          />
+          <label>Description <a href="https://github.com/pradeepkumar24rk/i-community/blob/main/CreateBlogHelp.md" target="_blank">How to write blog? </a></label>
+          <Textarea
+            value={createPost.content}
+            onChange={(e) =>
+              dispatch(setCreatePost({ ...createPost, content: e.target.value }))
+            }
+            placeholder="Write your post content here..."
+          />
+          <input
+            className='submit'
+            type='submit'
+            value={postModelType === "EDIT_POST" ? "Edit Post" : "Publish"}
+          />
+        </BOX>
+      </Left>
+      <Right>
+        <h1>Description Preview</h1>
+        <Content {...createPost} />
+      </Right>
+    </Container>
   );
 };
 
 export default Post_create_box;
 
-const Container = styled.form`
+const Container = styled.div`
+  display: flex;
+  gap: 20px;
+  height: calc(100vh - 12vh);
+  padding: 10px;
+  box-sizing: border-box;
+`;
+
+const Left = styled.div`
+  flex: 1;
+  height: 100%;
+  overflow-y: auto;
+  `;
+
+const BOX = styled.form`
+  height: 100%;
   display: flex;
   flex-direction: column;
   gap: 10px;
-  /* background-color: rgb(227, 226, 226); */
-  /* padding: 1.5% 5%; */
-  width: fit-content;
-  .add_tag {
-    width: 200px;
-  }
-  textarea {
-    width: 450px;
-    height: 200px;
-    border-radius: 10px;
-    font-size: 20px;
-    padding: 10px;
-    &:focus {
-      border: 1px solid #1a89ea;
-      outline: none;
-    }
-    &::placeholder {
-      color: #d2d0d0;
-      font-size: 18px;
-    }
-  }
-  .tag_container {
-    input[type="button"] {
-      width: fit-content;
-      margin-left: 20px;
-    }
-  }
-  .tags {
-    height: fit-content;
-    width: 500px;
+  
+  .mantine-Textarea-root {
     display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    .single_tag {
-      background-color: aliceblue;
-    }
+    flex: 1;
   }
+  .mantine-Textarea-wrapper {
+    display: flex;
+    width: 100%;
+  }
+  
+  .mantine-Textarea-input {
+   
+  }
+
   .submit {
-    width: fit-content;
     margin: 0px auto;
-    background: blue;
+    background: var(--primary_color);
     border: 0px;
     border-radius: 5px;
-    padding: 1.5% 3.5%;
+    padding: 10px 20px;
     color: white;
     cursor: pointer;
+    &:hover {
+      background: var(--secondary_color);
+    }
   }
+`;
+
+const Right = styled.div`
+  flex: 1;
+  height: 100%;
+  overflow-y: auto;
 `;

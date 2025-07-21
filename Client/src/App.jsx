@@ -19,6 +19,9 @@ import FollowTagsModal from "./Components/Auth/FollowTagsModal.jsx";
 import Auth_google_success from "./Pages/Auth_google_success.jsx";
 import Message_page from "./Pages/Message_page.jsx";
 import White_board_page from "./Pages/White_board_page.jsx";
+import ReactGA from 'react-ga';
+const TRACKING_ID = "G-Y1FL9PMPD2"; // OUR_TRACKING_ID
+ReactGA.initialize(TRACKING_ID);
 
 const MainLayout = () => (
   <>
@@ -77,6 +80,11 @@ function App() {
     if (isAuth)
       dispatch({ type: "CONNECTED_USER", data: { userId: user._id } });
   }, [isAuth]);
+  
+  useEffect(() => {
+    ReactGA.pageview(window.location.pathname + window.location.search);
+  }, []);
+  
   return (
     <BrowserRouter>
       <Routes>

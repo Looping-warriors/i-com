@@ -32,15 +32,14 @@ const Log_in_button = () => {
   };
   return (
     <>
-      <Modal
+      <CreatePostModal
         opened={createPostModel}
         onClose={closeModel}
         fullScreen
         title={postModelType === "CREATE_POST" ? "Create Post" : "Edit Post"}
-        centered
       >
         <Post_create_box />
-      </Modal>
+      </CreatePostModal>
 
       <Group position='center'>
         {isAuth ? (
@@ -103,3 +102,12 @@ const Log = styled.div`
   align-items: center;
   gap: 20px;
 `;
+
+const CreatePostModal = styled(Modal)`
+  .mantine-7tavfx {
+    max-height: 100% !important;
+  }
+  .mantine-1vk7ugd {
+    position:relative !important;
+  }
+`

@@ -7,14 +7,16 @@ import {
   LoadingOverlay,
   Modal,
   MultiSelect,
+  Textarea,
 } from "@mantine/core";
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
-import ReactQuill from "react-quill";
-import "react-quill/dist/quill.snow.css";
 import Content from "./Content";
 import { setCreatePost } from "../../Redux/Slices/publicPostsSlice";
-import { picUpdatingModal, resetChangedPicUrl } from "../../Redux/Slices/authSlice";
+import {
+  picUpdatingModal,
+  resetChangedPicUrl,
+} from "../../Redux/Slices/authSlice";
 import Change_pic from "../Profile/Change_pic";
 
 const Post_create_box = () => {
@@ -25,14 +27,14 @@ const Post_create_box = () => {
     (state) => state.auth
   );
   const dispatch = useDispatch();
-  
-  useEffect(()=>{
+
+  useEffect(() => {
     dispatch(resetChangedPicUrl());
-  },[])
+  }, []);
 
   useEffect(() => {
     if (changedPicUrl) {
-      dispatch(setCreatePost({...createPost,bannerPic:changedPicUrl}));
+      dispatch(setCreatePost({ ...createPost, bannerPic: changedPicUrl }));
     }
   }, [changedPicUrl]);
 
@@ -65,30 +67,6 @@ const Post_create_box = () => {
       dispatch({ type: "EDIT_POST", data: { _id: user._id, createPost } });
   };
 
-  const toolbarOptions = [
-    ["bold", "italic", "underline", "strike"],
-    ["blockquote", "code-block"],
-    ["link", "image", "video", "formula"],
-    [{ header: 1 }, { header: 2 }],
-    [{ list: "ordered" }, { list: "bullet" }, { list: "check" }],
-    [{ script: "sub" }, { script: "super" }],
-    [{ indent: "-1" }, { indent: "+1" }],
-    [{ direction: "rtl" }],
-    [{ size: ["small", false, "large", "huge"] }],
-    [{ header: [1, 2, 3, 4, 5, 6, false] }],
-    [{ color: [] }, { background: [] }],
-    [{ font: [] }],
-    [{ align: [] }],
-    ["clean"],
-  ];
-
-  const module = {
-    // syntax: {
-    //   highlight: (text) => Prism.highlight(text, Prism.languages.javascript, 'javascript'),
-    // },
-    toolbar: toolbarOptions,
-  };
-
   return (
     <Container>
       <Modal
@@ -107,7 +85,7 @@ const Post_create_box = () => {
           <label>Banner Picture</label>
           <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
             <Avatar
-            color="blue"
+              color='blue'
               src={createPost.bannerPic}
               size={80}
             />
@@ -143,15 +121,13 @@ const Post_create_box = () => {
               dispatch(setCreatePost({ ...createPost, tags: value }));
             }}
           />
-          <label>Description</label>
-          <ReactQuill
-            className='post_content'
-            theme='snow'
-            modules={module}
+          <label>Description <a href="https://github.com/pradeepkumar24rk/i-community/blob/main/CreateBlogHelp.md" target="_blank">How to write blog? </a></label>
+          <Textarea
             value={createPost.content}
             onChange={(e) =>
-              dispatch(setCreatePost({ ...createPost, content: e }))
+              dispatch(setCreatePost({ ...createPost, content: e.target.value }))
             }
+            placeholder="Write your post content here..."
           />
           <input
             className='submit'
@@ -173,7 +149,7 @@ export default Post_create_box;
 const Container = styled.div`
   display: flex;
   gap: 20px;
-  height: calc(100vh - 10vh);
+  height: calc(100vh - 12vh);
   padding: 10px;
   box-sizing: border-box;
 `;
@@ -182,31 +158,37 @@ const Left = styled.div`
   flex: 1;
   height: 100%;
   overflow-y: auto;
-`;
+  `;
 
 const BOX = styled.form`
+  height: 100%;
   display: flex;
   flex-direction: column;
   gap: 10px;
-
-  .post_content {
+  
+  .mantine-Textarea-root {
+    display: flex;
     flex: 1;
   }
-  .ql-editor {
-    /* background-color: red; */
-    min-height: 200px;
+  .mantine-Textarea-wrapper {
+    display: flex;
+    width: 100%;
+  }
+  
+  .mantine-Textarea-input {
+   
   }
 
   .submit {
     margin: 0px auto;
-    background: blue;
+    background: var(--primary_color);
     border: 0px;
     border-radius: 5px;
     padding: 10px 20px;
     color: white;
     cursor: pointer;
     &:hover {
-      background: #5f5ff0;
+      background: var(--secondary_color);
     }
   }
 `;
